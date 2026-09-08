@@ -1,0 +1,56 @@
+# 设计草案：当前程序不会读取或应用此文件；部署前必须校验并替换示例值。
+schema_version = 0
+role = "hub"
+node_name = "lg-example"
+ipv4_only = true
+
+[management]
+listen = "127.0.0.1:8080"
+helper_socket = "/run/securetunnel/helper.sock"
+
+[ssh_server]
+# 由外部 DDNS 维护；必须具有真实公网入站可达性及必要的端口映射。
+public_name = "hub.example.com"
+port = 22
+dedicated_instance = true
+# 每次安装独立生成；此路径仅描述未来部署布局，不包含私钥。
+host_key_file = "/etc/securetunnel/ssh/ssh_host_ed25519_key"
+
+[[tunnels]]
+name = "tun40"
+peer_role = "external-b"
+local_address = "10.254.40.1/30"
+peer_address = "10.254.40.2"
+ssh_user = "securetunnel-b"
+authorized_keys_file = "/etc/securetunnel/ssh/b_authorized_keys"
+mtu = 1400
+
+[[tunnels]]
+name = "tun41"
+peer_role = "connector"
+local_address = "10.254.41.1/30"
+peer_address = "10.254.41.2"
+ssh_user = "securetunnel-d-data"
+authorized_keys_file = "/etc/securetunnel/ssh/d_data_authorized_keys"
+mtu = 1400
+
+[[routes]]
+destination = "192.168.50.37/32"
+via = "10.254.40.2"
+interface = "tun40"
+
+[[routes]]
+destination = "10.60.20.45/32"
+via = "10.254.41.2"
+interface = "tun41"
+
+[forwarding]
+default_policy = "drop"
+snat = false
+
+[[forwarding.allow]]
+source = "192.168.50.37/32"
+destination = "10.60.20.45/32"
+tcp_ports = [8080]
+udp_ports = []
+icmp_echo = true

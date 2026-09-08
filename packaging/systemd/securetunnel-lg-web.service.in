@@ -1,0 +1,50 @@
+# Design input only: the independent Web daemon and notify protocol are not implemented.
+# The installer must validate the daemon, accounts, directories and UDS access before enable.
+[Unit]
+Description=SecureTunnelLG Web Management
+After=local-fs.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=notify
+NotifyAccess=main
+User=securetunnel-lg-web
+Group=securetunnel-lg-web
+SupplementaryGroups=securetunnel-lg-management
+ExecStart=/usr/libexec/securetunnel-lg/securetunnel-lg-web serve --config /etc/securetunnel-lg/web.toml
+Restart=always
+RestartSec=5s
+RestartSteps=6
+RestartMaxDelaySec=60s
+TimeoutStartSec=30s
+TimeoutStopSec=15s
+TimeoutAbortSec=5s
+WatchdogSec=30s
+KillMode=control-group
+StateDirectory=securetunnel-lg/web
+StateDirectoryMode=0700
+RuntimeDirectory=securetunnel-lg/web
+RuntimeDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+TasksMax=64
+MemoryHigh=96M
+MemoryMax=128M
+LimitNOFILE=1024
+LimitCORE=0
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=securetunnel-lg-web
+
+[Install]
+WantedBy=multi-user.target
